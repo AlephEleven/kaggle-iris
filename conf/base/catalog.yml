@@ -1,0 +1,16 @@
+# Here you can define all your datasets by using simple YAML syntax.
+#
+# Documentation for this file format can be found in "The Data Catalog"
+# Link: https://docs.kedro.org/en/stable/catalog-data/introduction/#data-catalog
+
+iris:
+  type: kaggle_iris.datasets.kaggle_dataset.KaggleDataset
+  adapter: polars
+  handle: "uciml/iris"
+  kaggle_path: "Iris.csv"
+  credentials: kaggle_creds
+
+iris_distribution:
+  type: polars.EagerPolarsDataset
+  file_format: csv
+  filepath: data/iris_distribution/iris_distribution.csv
