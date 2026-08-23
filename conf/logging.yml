@@ -1,12 +1,12 @@
-# To enable this custom logging configuration, set KEDRO_LOGGING_CONFIG to the path of this file.
-# More information available at https://docs.kedro.org/en/stable/develop/logging/#how-to-customise-kedro-logging
 version: 1
-
-disable_existing_loggers: False
 
 formatters:
   simple:
     format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+  go:
+    format: 'time="%(asctime)s" level=%(levelname)s msg="%(message)s" logger=%(name)s'
+    datefmt: "%Y-%m-%dT%H:%M:%S%z"
 
 handlers:
   console:
@@ -28,16 +28,11 @@ handlers:
   rich:
     class: kedro.logging.RichHandler
     rich_tracebacks: True
-    # Advance options for customisation.
-    # See https://docs.kedro.org/en/stable/develop/logging/#advanced-logging
-    # tracebacks_show_locals: False
 
-loggers:
-  kedro:
-    level: INFO
-
-  kaggle_iris:
-    level: INFO
+  basic:
+    class: logging.StreamHandler
+    formatter: go
 
 root:
+  level: INFO
   handlers: [rich, info_file_handler]

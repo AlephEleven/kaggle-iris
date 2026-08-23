@@ -7,11 +7,14 @@ from kedro.io import AbstractDataset
 
 class KaggleDatasetParams(TypedDict):
     """
-    Referenced directly from dataset_load() args
+    Referenced directly from dataset_load() and dataset_upload() args
 
-    See: [dataset_load()](https://github.com/Kaggle/kagglehub/blob/4fe0a176e0e9b815ca4101c371b504ff97239b97/src/kagglehub/datasets.py#L98)
+    See:
+    [dataset_load()](https://github.com/Kaggle/kagglehub/blob/4fe0a176e0e9b815ca4101c371b504ff97239b97/src/kagglehub/datasets.py#L98)
+    [dataset_upload()](https://github.com/Kaggle/kagglehub/blob/4fe0a176e0e9b815ca4101c371b504ff97239b97/src/kagglehub/datasets.py#L64)
     """
 
+    # dataset_load() params
     adapter: str
     handle: str
     kaggle_path: str
@@ -19,6 +22,11 @@ class KaggleDatasetParams(TypedDict):
     sql_query: NotRequired[str | None]
     hf_kwargs: NotRequired[Any]
     credentials: dict[str, Any]
+
+    # dataset_upload() params
+    local_dataset_dir: str
+    version_notes: str
+    ignore_patterns: NotRequired[list[str]]
 
 
 class KaggleDataset(AbstractDataset[Any, Any]):
@@ -84,11 +92,26 @@ class KaggleDataset(AbstractDataset[Any, Any]):
     def credentials(self) -> dict[str, Any]:
         return self._params.get("credentials")
 
-    def load(self) -> Any:
+    @property
+    def local_dataset_dir(self) -> str:
+        return self._params.get("local_dataset_dir")
+
+    @property
+    def version_notes(self) -> str:
+        return self._params.get("version_notes", "")
+
+    @property
+    def ignore_patterns(self) -> list[str] | None:
+        return self._params.get("ignore_patterns")
+
+    def _set_env(self):
         if "KAGGLE_API_TOKEN" in self.credentials:
             os.environ["KAGGLE_API_TOKEN"] = self.credentials.get(
                 "KAGGLE_API_TOKEN", ""
             )
+
+    def load(self) -> Any:
+        self._set_env()
 
         return kagglehub.load_dataset(
             adapter=self.adapter,
@@ -110,6 +133,11 @@ class KaggleDataset(AbstractDataset[Any, Any]):
         }
 
     def save(self, data: Any) -> None:
-        self._logger.debug(
-            "Kaggle dataset upload not implemented, skipping 'save' Dataset functionality"
+        self._set_env()
+
+        kagglehub.dataset_upload(
+            handle=self.handle,
+            local_dataset_dir=self.local_dataset_dir,
+            version_notes=self.version_notes,
+            ignore_patterns=self.ignore_patterns,
         )
