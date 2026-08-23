@@ -1,5 +1,6 @@
-from typing import Any, NotRequired, TypedDict, Unpack
 import os
+from typing import Any, NotRequired, TypedDict, Unpack
+
 import kagglehub  # type: ignore
 from kedro.io import AbstractDataset
 
@@ -21,6 +22,37 @@ class KaggleDatasetParams(TypedDict):
 
 
 class KaggleDataset(AbstractDataset[Any, Any]):
+    """``kaggle_dataset.KaggleDataset`` loads Kaggle Datasets via kagglehub library using kagglehub.dataset_load(...). Requires environment 'KAGGLE_API_KEY' to access Kaggle API
+
+    Examples:
+
+        Loading the [Iris Dataset](https://www.kaggle.com/datasets/uciml/iris)
+
+        *conf/base/catalog.yml*
+        ```yaml
+        iris:
+        type: kaggle_iris.datasets.kaggle_dataset.KaggleDataset
+        adapter: polars
+        handle: "uciml/iris"
+        kaggle_path: "Iris.csv"
+        credentials: kaggle_creds
+        ```
+
+        *conf/base/local/credentials.yml*
+        ```yaml
+        kaggle_creds:
+        KAGGLE_API_TOKEN: KGAT_xxxx
+        ```
+
+        Using it as a Kedro Node function
+        ```python
+        def get_iris_distribution(lf_iris: pl.LazyFrame) -> pl.DataFrame:
+            return lf_iris.sql(
+                "SELECT Species as species, Count(Species) as species_count FROM self GROUP BY Species"
+            ).collect()
+        ```
+    """
+
     def __init__(self, **params: Unpack[KaggleDatasetParams]) -> None:
         self._params = params
 
@@ -68,7 +100,14 @@ class KaggleDataset(AbstractDataset[Any, Any]):
         )
 
     def _describe(self) -> dict[str, Any]:
-        return dict()
+        return {
+            "adapter": self.adapter,
+            "handle": self.handle,
+            "kaggle_path": self.kaggle_path,
+            "pandas_kwargs": self.pandas_kwargs,
+            "sql_query": self.sql_query,
+            "hf_kwargs": self.hf_kwargs,
+        }
 
     def save(self, data: Any) -> None:
         self._logger.debug(
