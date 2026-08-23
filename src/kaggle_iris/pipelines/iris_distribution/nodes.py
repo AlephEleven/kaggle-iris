@@ -10,8 +10,8 @@ def get_iris_distribution(lf_iris: pl.LazyFrame) -> pl.DataFrame:
 
 
 def normalize_iris_dataset(lf_iris: pl.LazyFrame) -> pl.DataFrame:
-    c = pl.col("SepalLengthCm", "SepalWidthCm", "PetalWidthCm")
-    return lf_iris.with_columns(c / c.sum()).collect()
+    c = pl.col("SepalLengthCm", "SepalWidthCm", "PetalWidthCm", "PetalLengthCm")
+    return lf_iris.with_columns(c / c.sum()).drop("Id").collect()
 
 
 def noop(_: Any):
