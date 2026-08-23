@@ -30,7 +30,8 @@ class KaggleDatasetParams(TypedDict):
 
 
 class KaggleDataset(AbstractDataset[Any, Any]):
-    """``kaggle_dataset.KaggleDataset`` loads Kaggle Datasets via kagglehub library using kagglehub.dataset_load(...). Requires environment 'KAGGLE_API_KEY' to access Kaggle API
+    """``kaggle_dataset.KaggleDataset`` loads/saves Kaggle Datasets via kagglehub library using kagglehub.dataset_load(...) and kagglehub.dataset_upload(...).
+    Requires environment 'KAGGLE_API_KEY' to access Kaggle API
 
     Examples:
 
@@ -59,6 +60,8 @@ class KaggleDataset(AbstractDataset[Any, Any]):
                 "SELECT Species as species, Count(Species) as species_count FROM self GROUP BY Species"
             ).collect()
         ```
+
+        Uploading a normalized Iris Dataset
     """
 
     def __init__(self, **params: Unpack[KaggleDatasetParams]) -> None:
